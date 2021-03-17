@@ -131,3 +131,6 @@ dmypy.json
 # Project specific
 *.mp4
 cache/
+sample_footage/
+final_*.html
+carbon-mediator-256404-1596b7f537fe.json

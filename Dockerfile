@@ -10,4 +10,4 @@ RUN apt-get -y install jp2a libgl1-mesa-glx libglib2.0-0
 
 COPY . .
 
-CMD [ "python3", "conversion.py"]
+CMD [ "python3", "app.py"]
