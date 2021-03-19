@@ -4,6 +4,7 @@ from werkzeug.utils import secure_filename
 import cv2
 import uuid
 from google.cloud import storage
+from flask_cors import CORS
 
 client = storage.Client()
 # https://console.cloud.google.com/storage/browser/[bucket-id]/
@@ -69,6 +70,7 @@ UPLOAD_FOLDER = '/tmp'
 ALLOWED_EXTENSIONS = {'mp4'}
 
 app = Flask(__name__)
+CORS(app)
 app.secret_key = uuid.uuid4().hex
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
