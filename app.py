@@ -10,6 +10,14 @@ client = storage.Client()
 # https://console.cloud.google.com/storage/browser/[bucket-id]/
 bucket = client.get_bucket('video-to-ascii')
 
+UPLOAD_FOLDER = '/tmp'
+ALLOWED_EXTENSIONS = {'mp4'}
+
+app = Flask(__name__)
+CORS(app)
+app.secret_key = uuid.uuid4().hex
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+
 
 def proccess_image(original_filename):
     cache_directory = "cache_" + original_filename
@@ -66,15 +74,6 @@ def proccess_image(original_filename):
     return final_url
 
 
-UPLOAD_FOLDER = '/tmp'
-ALLOWED_EXTENSIONS = {'mp4'}
-
-app = Flask(__name__)
-CORS(app)
-app.secret_key = uuid.uuid4().hex
-app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-
-
 def allowed_file(filename):
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
@@ -100,6 +99,7 @@ def upload_file():
         os.system("rm " + os.path.join(app.config['UPLOAD_FOLDER'], filename))
         print("ok")
         return jsonify({"url_result": final_url})
+
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
