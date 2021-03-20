@@ -1,77 +1,80 @@
 <template>
   <div id="app">
-    <Title class="animatedfTitle" />
-    <div class="flex w-full items-center text-center" id="app">
-      <div class="p-12">
-        <div
-          class="p-12 border border-gray-300"
-          @dragover="dragover"
-          @dragleave="dragleave"
-          @drop="drop"
-        >
-          <input
-            type="file"
-            multiple
-            name="fields[assetsFieldHandle][]"
-            id="assetsFieldHandle"
-            class="w-px h-px opacity-0 overflow-hidden absolute"
-            @change="onChange"
-            ref="file"
-            accept=".pdf,.jpg,.jpeg,.png"
-          />
+    <div v-if="applicationState == 0">
+      <Title class="animatedfTitle" />
+      <div class="flex w-full items-center text-center" id="app">
+        <div class="p-12">
+          <div
+            class="p-12 border border-gray-300"
+            @dragover="dragover"
+            @dragleave="dragleave"
+            @drop="drop"
+          >
+            <input
+              type="file"
+              multiple
+              name="fields[assetsFieldHandle][]"
+              id="assetsFieldHandle"
+              class="w-px h-px opacity-0 overflow-hidden absolute"
+              @change="onChange"
+              ref="file"
+              accept=".pdf,.jpg,.jpeg,.png"
+            />
 
-          <label for="assetsFieldHandle" class="block cursor-pointer">
-            <div v-if="this.filelist.length">
-              {{ filelist[0].name }}
-              <br />
-              Drag another file or <span class="underline">click here</span> to
-              replace
-            </div>
-            <div v-else>
-              Drag and drop an .mp4 here or
-              <span class="underline">click here</span> to upload your file
-              <br />
-              [file size less than X and length less than Y]
-            </div>
-          </label>
-          <!-- <ul class="mt-4" v-if="this.filelist.length" v-cloak>
-            <li
-              class="text-sm p-1"
-              v-for="file in filelist"
-              v-bind:key="file.id"
-            >
-              ${ file.name }<button
-                class="ml-2"
-                type="button"
-                @click="remove(filelist.indexOf(file))"
-                title="Remove file"
-              >
-                remove
-              </button>
-            </li>
-          </ul> -->
+            <label for="assetsFieldHandle" class="block cursor-pointer">
+              <div v-if="this.filelist.length">
+                {{ filelist[0].name }}
+                <br />
+                Drag another file or
+                <span class="underline">click here</span> to replace
+              </div>
+              <div v-else>
+                Drag and drop an .mp4 here or
+                <span class="underline">click here</span> to upload your file
+                <br />
+                [file size less than X and length less than Y]
+              </div>
+            </label>
+          </div>
+          <v-btn
+            class="my-5"
+            block
+            :disabled="!this.filelist.length"
+            @click="submitFile()"
+            >Submit</v-btn
+          >
         </div>
-        <v-btn class="my-5" block color="red" @click="submitFile()"
-          >Submit</v-btn
-        >
       </div>
+    </div>
+    <div v-else-if="applicationState == 1">
+      <Loading class="animatedLoading" />
+    </div>
+    <div v-else-if="applicationState == 2">
+      <iframe
+        :src="iframeUrl"
+        style="position: absolute; height: 100%; width: 100%; border: none"
+      ></iframe>
     </div>
   </div>
 </template>
 
 <script>
 import Title from "./components/Title.vue";
+import Loading from "./components/Loading.vue";
 import axios from "axios";
 
 export default {
   name: "App",
   components: {
     Title,
+    Loading,
   },
   delimiters: ["${", "}"], // Avoid Twig conflicts
   data: function () {
     return {
       filelist: [], // Store our uploaded files
+      applicationState: 0,
+      iframeUrl: "",
     };
   },
   methods: {
@@ -103,6 +106,8 @@ export default {
       console.log("submitted");
       let formData = new FormData();
       formData.append("file", this.filelist[0]);
+      this.applicationState = 1;
+      let self = this;
       axios
         .post(
           "https://video-to-ascii-file-processing-niuary44ca-de.a.run.app",
@@ -114,11 +119,12 @@ export default {
           }
         )
         .then(function (response) {
-          JSON.stringify(response.data);
-          console.log("SUCCESS!!");
+          console.log(JSON.stringify(response.data));
+          self.applicationState = 2;
+          self.iframeUrl = response.data.url_result;
         })
-        .catch(function () {
-          console.log("FAILURE!!");
+        .catch(function (error) {
+          console.log(error);
         });
     },
   },
@@ -146,7 +152,10 @@ export default {
   .animatedfTitle {
     display: inline-block;
     font-size: 0.8vw;
-    /* width: 50%; */
+  }
+  .animatedLoading {
+    display: inline-block;
+    font-size: 0.8vw;
   }
 }
 
@@ -155,7 +164,10 @@ export default {
   .animatedfTitle {
     display: inline-block;
     font-size: 0.4vw;
-    /* width: 50%; */
+  }
+  .animatedLoading {
+    display: inline-block;
+    font-size: 0.3vw;
   }
 }
 
