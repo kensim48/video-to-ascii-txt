@@ -5,8 +5,12 @@ import os
 import cv2
 import boto3
 import subprocess
+import requests
 
 UPLOAD_FOLDER = '/tmp'
+RECAPTCHA_SECRET = os.environ['RECAPTCHA_SECRET']
+
+dev_env = os.environ.get('DEV_ENV') == 'true'
 
 
 def proccess_image(original_filename):
@@ -59,17 +63,21 @@ def proccess_image(original_filename):
     web_post.close()
     s3_client = boto3.client("s3")
     result_anim = open(folder_html_filename, "r")
-    s3_client.put_object(Body=result_anim.read(), Bucket="video-to-ascii-txt-webpages", Key=html_filename, ContentType='text/html')
-    final_url = "https://video-to-ascii-txt-webpages.s3.amazonaws.com/{}".format(html_filename)
+    s3_client.put_object(Body=result_anim.read(
+    ), Bucket="video-to-ascii-txt-webpages", Key=html_filename, ContentType='text/html')
+    final_url = "https://video-to-ascii-txt-webpages.s3.amazonaws.com/{}".format(
+        html_filename)
     return final_url
+
 
 def get_length(filename):
     result = subprocess.run(["ffprobe", "-v", "error", "-show_entries",
                              "format=duration", "-of",
                              "default=noprint_wrappers=1:nokey=1", filename],
-        stdout=subprocess.PIPE,
-        stderr=subprocess.STDOUT)
+                            stdout=subprocess.PIPE,
+                            stderr=subprocess.STDOUT)
     return float(result.stdout)
+
 
 def handler(event, context):
     content_type_header = event['headers']['content-type']
@@ -87,13 +95,22 @@ def handler(event, context):
     print(head[0])
     print("\n")
     print(event)
+    if not dev_env:
+        token_response = cont[1].decode("utf-8")
+
+        url = "https://www.google.com/recaptcha/api/siteverify?secret={}&response={}".format(
+            RECAPTCHA_SECRET, token_response)
+
+        recaptcha_response = requests.request("POST", url)
+        if not recaptcha_response.json()["success"]:
+            return {"statusCode": 400, "body":  {"error": "Invalid recaptcha token"}}
     filename = uuid.uuid4().hex + ".mp4"
 
     print("file_size", len(cont[0]))
-    if len(cont[0])>100000000:
+    if len(cont[0]) > 100000000:
         return {
             "statusCode": 400,
-            "body": {"error":"File too large"}
+            "body": {"error": "File too large"}
         }
 
     with open(os.path.join(UPLOAD_FOLDER, filename), 'wb+') as w:

@@ -1,5 +1,5 @@
 {
-  "name": "video-to-ascii-fe",
+  "name": "video-to-ascii",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -11,6 +11,7 @@
     "axios": "^0.21.1",
     "core-js": "^3.6.5",
     "vue": "^2.6.11",
+    "vue-recaptcha-v3": "^1.9.0",
     "vuetify": "^2.4.0"
   },
   "devDependencies": {

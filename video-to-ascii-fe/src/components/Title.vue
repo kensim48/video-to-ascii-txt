@@ -1,5 +1,5 @@
 <template>
-  <div class="hello">
+  <div class="title-text">
     <div id="images">
       <pre style="display: none">
                                                     .ckKXXXXKOo,.                                                                                                                                       
@@ -6490,4 +6490,8 @@ export default {
 </script>
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
-<style scoped></style>
+<style scoped>
+.title-text {
+  font-size: 0.4em;
+}
+</style>
